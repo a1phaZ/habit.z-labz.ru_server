@@ -96,7 +96,11 @@ router.put('/:id', async (req, res, next) => {
 			}
 		})
 		.then((saved) => {
-			res.status(200).json(saved.toJSON());
+			res.status(200).json({
+				success: true,
+				data: habitToJson(saved),
+				error: null,
+			});
 		})
 		.catch(error => next(error));
 });
