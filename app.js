@@ -7,8 +7,6 @@ const dotenv = require('dotenv');
 const qs = require('querystring');
 const crypto = require('crypto');
 
-const router = express.Router();
-
 dotenv.config();
 
 const app = express();
@@ -47,17 +45,7 @@ app.use((req, res, next) => {
 	}
 });
 
-router.get('/api', (req, res) => {
-	return res.status(200).json({
-		success: true,
-		data: {
-			message: 'test api connection'
-		},
-		error: null
-	});
-});
-
-app.use(router);
+app.use(require('./routes'));
 
 app.use(function (req, res, next) {
 	next(createError(404, 'Запрашиваемый адрес не найден'));
@@ -65,7 +53,6 @@ app.use(function (req, res, next) {
 
 // error-box handler
 app.use((err, req, res, next) => {
-	console.log(err);
 	handleError(err, res)
 });
 
