@@ -15,6 +15,10 @@ const habitToJson = (item) => {
 	}
 };
 
+const ArrayToJson = (items) => items.map(item => {
+	return habitToJson(item);
+});
+
 router.get('/', async (req, res, next) => {
 	const {
 		query: {
@@ -24,12 +28,9 @@ router.get('/', async (req, res, next) => {
 
 	await Habit.find({userId: vk_user_id})
 		.then(habits => {
-			const ArrayToJson = habits.map(item => {
-				return habitToJson(item);
-			});
 			res.status(200).json({
 				success: true,
-				data: ArrayToJson,
+				data: ArrayToJson(habits),
 				error: null,
 			});
 		})
@@ -48,10 +49,13 @@ router.post('/', async (req, res, next) => {
 	});
 	await habit
 		.save()
-		.then(response => {
+		.then(async () => {
+			return await Habit.find({userId: vk_user_id});
+		})
+		.then(habits => {
 			res.status(200).json({
 				success: true,
-				data: response.toJSON(),
+				data: ArrayToJson(habits),
 				error: null,
 			});
 		})
