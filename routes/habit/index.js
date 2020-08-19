@@ -80,7 +80,8 @@ router.put('/:id', async (req, res, next) => {
 
 				const currentDate = new Date();
 				const prevDate = new Date(habit.lastModified);
-				if (compareDate(currentDate, prevDate)) {
+				const createdAt = new Date(habit.createdAt);
+				if (compareDate(currentDate, prevDate, createdAt) || !compareDate(currentDate, prevDate, createdAt) && habit.daysComplete > 0) {
 					throw new Error('Отмечать цель можно раз в сутки');
 				}
 

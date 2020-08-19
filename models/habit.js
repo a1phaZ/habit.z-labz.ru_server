@@ -10,7 +10,7 @@ const HabitSchema = new Schema({
 	lastModified: { type: Date, default: Date.now()},
 	daysComplete: { type: Number, default: 0},
 	status: {type: String, default: 'active'}
-});
+}, {timestamps: true});
 
 HabitSchema.methods.toJSON = function () {
 	return {
