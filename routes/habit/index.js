@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Habit = require('../../models/habit');
+const {format} = require("../../handlers/date");
+const {checkMissMark} = require("../../handlers/date");
 const {compareDate} = require("../../handlers/date");
 const {createError} = require("../../handlers/error");
 
@@ -27,6 +29,11 @@ router.get('/', async (req, res, next) => {
 	} = req;
 
 	await Habit.find({userId: vk_user_id})
+		.then(habits => {
+			return habits.map(habit => {
+				return checkMissMark(habit);
+			})
+		})
 		.then(habits => {
 			res.status(200).json({
 				success: true,
@@ -74,24 +81,25 @@ router.put('/:id', async (req, res, next) => {
 	await Habit.findOne(query)
 		.then(habit => {
 			if (habit) {
-				if (habit.status !== 'active') {
+				const checkedHabit = checkMissMark(habit);
+				if (checkedHabit.status !== 'active') {
 					throw new Error('Данная цель уже выполнена');
 				}
 
 				const currentDate = new Date();
-				const prevDate = new Date(habit.lastModified);
-				const createdAt = new Date(habit.createdAt);
-				if (compareDate(currentDate, prevDate, createdAt) || !compareDate(currentDate, prevDate, createdAt) && habit.daysComplete > 0) {
+				const lastModifiedDate = new Date(checkedHabit.lastModified);
+				const createdAt = new Date(checkedHabit.createdAt);
+				if (compareDate(currentDate, lastModifiedDate, createdAt) || format(lastModifiedDate)===format(currentDate) && checkedHabit.daysComplete>0) {
 					throw new Error('Отмечать цель можно раз в сутки');
 				}
 
-				habit.lastModified = new Date();
-				habit.daysComplete = habit.daysComplete + 1;
-				if (!(habit.days > habit.daysComplete)) {
-					habit.daysComplete = habit.days;
-					habit.status = 'done';
+				checkedHabit.lastModified = new Date();
+				checkedHabit.daysComplete = checkedHabit.daysComplete + 1;
+				if (!(checkedHabit.days > checkedHabit.daysComplete)) {
+					checkedHabit.daysComplete = checkedHabit.days;
+					checkedHabit.status = 'done';
 				}
-				return habit.save();
+				return checkedHabit.save();
 			} else {
 				throw new Error('По данному идентификатору цель не найдена');
 			}
