@@ -64,6 +64,7 @@ router.post('/', async (req, res, next) => {
 				success: true,
 				data: ArrayToJson(habits),
 				error: null,
+				message: 'Цель успешно создана'
 			});
 		})
 		.catch(error => {
@@ -109,6 +110,7 @@ router.put('/:id', async (req, res, next) => {
 				success: true,
 				data: habitToJson(saved),
 				error: null,
+				message: saved.daysComplete === saved.days ? 'Вы достигли поставленной цели! Поздравляем!' : 'На сегодня цель отмечена. Отличная работа!'
 			});
 		})
 		.catch(error => next(error));
