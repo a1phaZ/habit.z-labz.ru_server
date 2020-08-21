@@ -80,7 +80,7 @@ router.put('/:id', async (req, res, next) => {
 
 	const query = {_id: id, userId: vk_user_id};
 	await Habit.findOne(query)
-		.then(habit => {
+		.then(async habit => {
 			if (habit) {
 				const checkedHabit = checkMissMark(habit);
 				if (checkedHabit.status !== 'active') {
@@ -100,13 +100,13 @@ router.put('/:id', async (req, res, next) => {
 					checkedHabit.daysComplete = checkedHabit.days;
 					checkedHabit.status = 'done';
 				}
-				return checkedHabit.save();
+				return await checkedHabit.save();
 			} else {
 				throw new Error('По данному идентификатору цель не найдена');
 			}
 		})
-		.then((saved) => {
-			res.status(200).json({
+		.then(async (saved) => {
+			await res.status(200).json({
 				success: true,
 				data: habitToJson(saved),
 				error: null,
@@ -126,14 +126,15 @@ router.delete('/:id', async (req, res, next) => {
 		.then(async () => {
 			return await Habit.find({userId: vk_user_id})
 		})
-		.then(habits => {
+		.then(async habits => {
 			const ArrayToJson = habits.map(item => {
 				return habitToJson(item);
 			});
-			res.status(200).json({
+			await res.status(200).json({
 				success: true,
 				data: ArrayToJson,
 				error: null,
+				message: 'Цель удалена'
 			});
 		})
 		.catch(error => next(error));
