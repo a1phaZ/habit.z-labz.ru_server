@@ -3,6 +3,7 @@ const https = require('https');
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const logger = require('morgan');
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ require('./config/db');
 const {handleError, createError} = require("./handlers/error");
 
 app.use(cors());
+app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(require('./handlers/compareSign'));
