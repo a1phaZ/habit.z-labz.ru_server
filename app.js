@@ -33,7 +33,7 @@ app.use((err, req, res, next) => {
 	handleError(err, res)
 });
 
-http.createServer(app).listen(80, () => {
+http.createServer(app).listen(process.env.PORT, () => {
 	console.log('Listening HTTP...');
 });
 
