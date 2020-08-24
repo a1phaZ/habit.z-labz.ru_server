@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
+    "start": "set NODE_ENV=\"production\" && node app.js",
     "dev": "set NODE_ENV=\"dev\" && nodemon app.js"
   },
   "dependencies": {
