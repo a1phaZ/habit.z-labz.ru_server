@@ -1,5 +1,6 @@
 const http = require('http');
 const https = require('https');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -20,6 +21,7 @@ app.use(cors());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
+app.use(express.static('static'));
 app.use(require('./handlers/compareSign'));
 
 app.use(require('./routes'));
@@ -33,7 +35,16 @@ app.use((err, req, res, next) => {
 	handleError(err, res)
 });
 
-http.createServer(app).listen(process.env.PORT, () => {
+if (process.env.SSL_PRIVATE_KEY_PATH && process.env.SSL_CERTIFICATE_PATH) {
+	https.createServer({
+		key: fs.readFileSync(process.env.SSL_PRIVATE_KEY_PATH),
+		cert: fs.readFileSync(process.env.SSL_CERTIFICATE_PATH)
+	}, app).listen(process.env.PORT_HTTPS || 8080, () => {
+		console.log('Listening HTTPS...');
+	});
+}
+
+http.createServer(app).listen(process.env.PORT_HTTP, () => {
 	console.log('Listening HTTP...');
 });
 
