@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const {objectToJson} = require("../handlers/toJson");
 const {Schema, model} = mongoose;
 
 mongoose.Promise = global.Promise;
@@ -9,18 +10,11 @@ const HabitSchema = new Schema({
 	days: { type: Number, required: [true, 'Отсутсвует кол-во дней']},
 	lastModified: { type: Date, default: Date.now()},
 	daysComplete: { type: Number, default: 0},
-	status: {type: String, default: 'active'}
+	status: {type: String, default: 'active'},
 }, {timestamps: true});
 
 HabitSchema.methods.toJSON = function () {
-	return {
-		_id: this._id,
-		userId: this.userId,
-		title: this.title,
-		days: this.days,
-		daysComplete: this.daysComplete,
-		status: this.status
-	}
+	return objectToJson(this);
 }
 
 const Habit = model('Habit', HabitSchema);

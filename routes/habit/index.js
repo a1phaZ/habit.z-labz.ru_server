@@ -1,25 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const Habit = require('../../models/habit');
+const {objectToJson, ArrayToJson} = require("../../handlers/toJson");
 const {format} = require("../../handlers/date");
 const {checkMissMark} = require("../../handlers/date");
 const {compareDate} = require("../../handlers/date");
 const {createError} = require("../../handlers/error");
 
-const habitToJson = (item) => {
-	return {
-		_id: item._id,
-		userId: item.userId,
-		title: item.title,
-		days: item.days,
-		daysComplete: item.daysComplete,
-		status: item.status
-	}
-};
-
-const ArrayToJson = (items) => items.map(item => {
-	return habitToJson(item);
-});
+// const habitToJson = (item) => {
+// 	return {
+// 		_id: item._id,
+// 		userId: item.userId,
+// 		title: item.title,
+// 		days: item.days,
+// 		daysComplete: item.daysComplete,
+// 		status: item.status
+// 	}
+// };
+//
+// const ArrayToJson = (items) => items.map(item => {
+// 	return habitToJson(item);
+// });
 
 router.get('/', async (req, res, next) => {
 	const {
@@ -74,7 +75,7 @@ router.post('/', async (req, res, next) => {
 
 router.put('/:id', async (req, res, next) => {
 	const {
-		params: { id },
+		params: {id},
 		query: {vk_user_id}
 	} = req;
 
@@ -90,7 +91,7 @@ router.put('/:id', async (req, res, next) => {
 				const currentDate = new Date();
 				const lastModifiedDate = new Date(checkedHabit.lastModified);
 				const createdAt = new Date(checkedHabit.createdAt);
-				if (compareDate(currentDate, lastModifiedDate, createdAt) || format(lastModifiedDate)===format(currentDate) && checkedHabit.daysComplete>0) {
+				if (compareDate(currentDate, lastModifiedDate, createdAt) || format(lastModifiedDate) === format(currentDate) && checkedHabit.daysComplete > 0) {
 					throw new Error('Отмечать цель можно раз в сутки');
 				}
 
@@ -108,7 +109,7 @@ router.put('/:id', async (req, res, next) => {
 		.then(async (saved) => {
 			await res.status(200).json({
 				success: true,
-				data: habitToJson(saved),
+				data: objectToJson(saved),
 				error: null,
 				message: saved.daysComplete === saved.days ? 'Вы достигли поставленной цели! Поздравляем!' : 'На сегодня цель отмечена. Отличная работа!'
 			});
@@ -118,17 +119,17 @@ router.put('/:id', async (req, res, next) => {
 
 router.delete('/:id', async (req, res, next) => {
 	const {
-		params: { id },
-		query: { vk_user_id }
+		params: {id},
+		query: {vk_user_id}
 	} = req;
 
-	await Habit.deleteOne({ _id: id, userId: vk_user_id})
+	await Habit.deleteOne({_id: id, userId: vk_user_id})
 		.then(async () => {
 			return await Habit.find({userId: vk_user_id})
 		})
 		.then(async habits => {
 			const ArrayToJson = habits.map(item => {
-				return habitToJson(item);
+				return objectToJson(item);
 			});
 			await res.status(200).json({
 				success: true,
