@@ -5,7 +5,8 @@ const objectToJson = (obj) => {
 		title: obj.title,
 		days: obj.days,
 		daysComplete: obj.daysComplete,
-		status: obj.status
+		status: obj.status,
+		notification: obj.cronSchedule.cronTime
 	}
 }
 

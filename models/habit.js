@@ -11,6 +11,14 @@ const HabitSchema = new Schema({
 	lastModified: { type: Date, default: Date.now()},
 	daysComplete: { type: Number, default: 0},
 	status: {type: String, default: 'active'},
+	cronSchedule: {
+		cronTime: {
+			type: String
+		},
+		timeZoneOffset: {
+			type: Number
+		}
+	}
 }, {timestamps: true});
 
 HabitSchema.methods.toJSON = function () {

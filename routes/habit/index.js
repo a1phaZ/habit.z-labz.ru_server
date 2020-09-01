@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Habit = require('../../models/habit');
+const CronSchedule = require("../../handlers/cron");
 const {objectToJson, ArrayToJson} = require("../../handlers/toJson");
 const {format} = require("../../handlers/date");
 const {checkMissMark} = require("../../handlers/date");
@@ -54,9 +55,26 @@ router.post('/', async (req, res, next) => {
 		userId: vk_user_id,
 		title: body.title,
 		days: body.days,
+		cronSchedule: {
+			cronTime: body.time,
+			timeZoneOffset: body.timeZoneOffset
+		}
 	});
 	await habit
 		.save()
+		.then(() => {
+			if (habit.cronSchedule.cronTime) {
+				const hour = habit.cronSchedule.cronTime.match(/^[0-9]{2}/);
+				const minute = habit.cronSchedule.cronTime.match(/[0-9]{2}$/);
+				const serverTZ = new Date().getTimezoneOffset()/60;
+				const habitTZ = habit.cronSchedule.timeZoneOffset/60;
+				const hourWithTZ = Number(hour) + habitTZ - serverTZ;
+				const cronTime = `00 ${minute} ${hourWithTZ} * * *`;
+				const job = new CronSchedule(vk_user_id, habit._id, habit.title, cronTime, habit.days-habit.daysComplete);
+				job.start();
+			}
+			return true;
+		})
 		.then(async () => {
 			return await Habit.find({userId: vk_user_id});
 		})
