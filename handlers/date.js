@@ -1,3 +1,4 @@
+const differenceInDay = require('date-fns/differenceInDays');
 const compareDate = (currentDate, prevDate, createdAt) => {
 	const caStr = `${createdAt.getFullYear()}${createdAt.getMonth()}${createdAt.getDate()}`
 	const cdStr = `${currentDate.getFullYear()}${currentDate.getMonth()}${currentDate.getDate()}`
@@ -11,7 +12,7 @@ const compareDate = (currentDate, prevDate, createdAt) => {
 const checkMissMark = (item) => {
 	const now = new Date();
 	const itemDate = new Date(item.lastModified);
-	item.daysComplete = now.getDate() - itemDate.getDate() > 1 ? 0 : item.daysComplete;
+	item.daysComplete = differenceInDay(now, itemDate) > 1 ? 0 : item.daysComplete;
 	return item;
 }
 
