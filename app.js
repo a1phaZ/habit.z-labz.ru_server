@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const logger = require('morgan');
+global.cronScheduleList = [];
 
 dotenv.config();
 
@@ -13,6 +14,7 @@ app.use(express.static(__dirname, {dotfiles: 'allow'}));
 app.disable('x-powered-by');
 
 require('./config/db');
+const {fillAndStartSchedule} = require("./handlers/cron");
 const {handleError, createError} = require("./handlers/error");
 
 app.use(cors());
@@ -21,6 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(express.static('static'));
 app.use(require('./handlers/compareSign'));
+app.use(require('./handlers/updateNotification'));
 
 app.use(require('./routes'));
 
@@ -34,6 +37,7 @@ app.use((err, req, res, next) => {
 });
 
 http.createServer(app).listen(process.env.PORT_HTTP, () => {
+  fillAndStartSchedule()
   console.log('Listening HTTP...');
 });
 

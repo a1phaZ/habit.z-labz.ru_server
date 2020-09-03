@@ -1,27 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const Habit = require('../../models/habit');
-const CronSchedule = require("../../handlers/cron");
+const {CronSchedule, getCronTime} = require("../../handlers/cron");
 const {objectToJson, ArrayToJson} = require("../../handlers/toJson");
 const {format} = require("../../handlers/date");
 const {checkMissMark} = require("../../handlers/date");
 const {compareDate} = require("../../handlers/date");
 const {createError} = require("../../handlers/error");
-
-// const habitToJson = (item) => {
-// 	return {
-// 		_id: item._id,
-// 		userId: item.userId,
-// 		title: item.title,
-// 		days: item.days,
-// 		daysComplete: item.daysComplete,
-// 		status: item.status
-// 	}
-// };
-//
-// const ArrayToJson = (items) => items.map(item => {
-// 	return habitToJson(item);
-// });
 
 router.get('/', async (req, res, next) => {
 	const {
@@ -64,13 +49,9 @@ router.post('/', async (req, res, next) => {
 		.save()
 		.then(() => {
 			if (habit.cronSchedule.cronTime) {
-				const hour = habit.cronSchedule.cronTime.match(/^[0-9]{2}/);
-				const minute = habit.cronSchedule.cronTime.match(/[0-9]{2}$/);
-				const serverTZ = new Date().getTimezoneOffset()/60;
-				const habitTZ = habit.cronSchedule.timeZoneOffset/60;
-				const hourWithTZ = Number(hour) + habitTZ - serverTZ;
-				const cronTime = `00 ${minute} ${hourWithTZ} * * *`;
+				const cronTime = getCronTime(habit.cronSchedule.cronTime, habit.cronSchedule.timeZoneOffset);
 				const job = new CronSchedule(vk_user_id, habit._id, habit.title, cronTime, habit.days-habit.daysComplete);
+				cronScheduleList.push(job);
 				job.start();
 			}
 			return true;
@@ -142,6 +123,16 @@ router.delete('/:id', async (req, res, next) => {
 	} = req;
 
 	await Habit.deleteOne({_id: id, userId: vk_user_id})
+		.then(async () => {
+			return await cronScheduleList.find(schedule => {
+				return (schedule.userId.toString() === vk_user_id.toString() && schedule.habitId.toString() === id.toString())
+			});
+		})
+		.then((schedule) => {
+			if (schedule) {
+				schedule.stop();
+			}
+		})
 		.then(async () => {
 			return await Habit.find({userId: vk_user_id})
 		})
