@@ -3,9 +3,9 @@ const User = require('../models/user');
 
 module.exports = (req, res, next) => {
 	const {
-		query: {vk_user_id, vk_are_notifications_enabled}
+		query: {vk_user_id, allowNotifications}
 	} = req;
-	User.findOneAndUpdate({userId: vk_user_id}, {allowNotification: vk_are_notifications_enabled}, {upsert: true})
+	User.findOneAndUpdate({userId: vk_user_id}, {allowNotification: allowNotifications}, {upsert: true})
 		.then(() => {
 			next();
 		})
