@@ -116,6 +116,60 @@ router.put('/:id', async (req, res, next) => {
 		.catch(error => next(error));
 });
 
+router.patch('/:id', async (req, res, next) => {
+	const {
+		params: {id},
+		body: {
+			title,
+			days,
+			timeZoneOffset,
+			time
+		},
+		query: {vk_user_id}
+	} = req;
+	const update = {
+		title,
+		days,
+		cronSchedule: {
+			cronTime: time,
+			timeZoneOffset: timeZoneOffset
+		}
+	}
+	await Habit.findOneAndUpdate({_id: id, userId: vk_user_id}, update, {new: true})
+		.then(async habit => {
+			if (habit.cronSchedule.cronTime) {
+				const cronTime = getCronTime(habit.cronSchedule.cronTime, habit.cronSchedule.timeZoneOffset);
+				const schedule = await cronScheduleList.find(schedule => {
+					return (schedule.userId.toString() === vk_user_id.toString() && schedule.habitId.toString() === id.toString())
+				});
+				if (schedule) {
+					schedule.stop();
+					const job = new CronSchedule(vk_user_id, habit._id, habit.title, cronTime, habit.days-habit.daysComplete);
+					cronScheduleList.push(job);
+					job.start();
+				} else {
+					const job = new CronSchedule(vk_user_id, habit._id, habit.title, cronTime, habit.days-habit.daysComplete);
+					cronScheduleList.push(job);
+					job.start();
+				}
+			}
+		})
+		.then(async () => {
+			return await Habit.find({userId: vk_user_id});
+		})
+		.then(habits => {
+			res.status(200).json({
+				success: true,
+				data: ArrayToJson(habits),
+				error: null,
+				message: 'Цель успешно обновлена'
+			});
+		})
+		.catch(error => {
+			next(createError(500, error.message));
+		});
+});
+
 router.delete('/:id', async (req, res, next) => {
 	const {
 		params: {id},
